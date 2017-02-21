@@ -1,5 +1,7 @@
 Rails.application.routes.draw do
-  root 'pages#index'
+  root 'watch_lists#index'
+
+  # root 'pages#index'
 
   get 'pages/show'
 
