@@ -1,14 +1,6 @@
 class CreateWatchListViews < ActiveRecord::Migration[5.0]
   TABLE_NAME = "watch_list_views"
 
-  # def change
-  #   create_table :watch_lists do |t|
-  #
-  #     t.timestamps
-  #   end
-  # end
-
-
   def up
     execute create_view_sql
   end
@@ -40,9 +32,9 @@ class CreateWatchListViews < ActiveRecord::Migration[5.0]
       SELECT
         bk.title,
         bk.author,
+        bk.publish_date,
         ppbk.price as pp_price,
-        ppbk.published_date as pp_published_date,
-        ppbk.point as pppoint,
+        ppbk.point as pp_point,
         kdbk.price as kd_price,
         kdbk.published_date as kd_published_date,
         kdbk.point as kd_point
@@ -54,5 +46,4 @@ class CreateWatchListViews < ActiveRecord::Migration[5.0]
     ;
   "
   end
-
 end
