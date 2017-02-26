@@ -39,9 +39,9 @@ class CreateWatchListViews < ActiveRecord::Migration[5.0]
         kdbk.published_date as kd_published_date,
         kdbk.point as kd_point
       FROM books bk
-        INNER JOIN paper_books ppbk
+        LEFT OUTER JOIN paper_books ppbk
             ON bk.id = ppbk.book_id
-        INNER JOIN kindle_books kdbk
+        LEFT OUTER JOIN kindle_books kdbk
             ON bk.id = kdbk.book_id
     ;
   "
