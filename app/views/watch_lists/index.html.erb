@@ -1,5 +1,12 @@
 <h1>WatchLists#index</h1>
-<p>Find me in app/views/watch_lists/index.html.erb</p>
+
+<%= form_tag({controller: :watch_lists, action: :search}, id: :fm, class: :search) do %>
+    検索ワード
+    <%= text_field_tag :keywd, '', size:30 %>
+    <%= submit_tag '検索' %>
+
+<% end %>
+
 
 <table>
   <thead>

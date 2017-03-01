@@ -5,6 +5,8 @@ Rails.application.routes.draw do
 
   get 'book', to: 'watch_lists#add'
 
+  post 'search', to: 'watch_lists#search'
+
 
   # get 'pages/show'
     

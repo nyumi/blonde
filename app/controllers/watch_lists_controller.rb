@@ -3,6 +3,7 @@ require 'open-uri'
 # Nokogiriライブラリの読み込み
 require 'nokogiri'
 require 'date'
+require 'uri'
 class WatchListsController < ApplicationController
   def index
     @watch_lists = WatchListView.all
@@ -15,8 +16,11 @@ class WatchListsController < ApplicationController
 
 # スクレイピング先のURL
 # ワンピ紙最新刊
-    url = 'https://www.amazon.co.jp/ONE-PIECE-84-%E3%82%B8%E3%83%A3%E3%83%B3%E3%83%97%E3%82%B3%E3%83%9F%E3%83%83%E3%82%AF%E3%82%B9-%E6%A0%84%E4%B8%80%E9%83%8E/dp/4088810023/ref=sr_1_1?s=books&ie=UTF8&qid=1488099214&sr=1-1&keywords=%E3%83%AF%E3%83%B3%E3%83%94%E3%83%BC%E3%82%B9
-'
+#     url = 'https://www.amazon.co.jp/ONE-PIECE-84-%E3%82%B8%E3%83%A3%E3%83%B3%E3%83%97%E3%82%B3%E3%83%9F%E3%83%83%E3%82%AF%E3%82%B9-%E6%A0%84%E4%B8%80%E9%83%8E/dp/4088810023/ref=sr_1_1?s=books&ie=UTF8&qid=1488099214&sr=1-1&keywords=%E3%83%AF%E3%83%B3%E3%83%94%E3%83%BC%E3%82%B9
+# '
+
+    # url = 'https://www.amazon.co.jp/s/ref=nb_sb_noss?__mk_ja_JP=%E3%82%AB%E3%82%BF%E3%82%AB%E3%83%8A&url=search-alias%3Dstripbooks&field-keywords=%E9%8A%80%E9%AD%82&rh=n%3A465392%2Ck%3A%E9%8A%80%E9%AD%82'
+    url = 'https://www.amazon.co.jp/s/ref=nb_sb_noss?__mk_ja_JP=カタカナ&url=search-alias%3Dstripbooks&field-keywords=銀魂&rh=n%3A465392%2Ck%3A銀魂'
     charset = nil
     html = open(url,opt) do |f|
       charset = f.charset # 文字種別を取得
@@ -74,8 +78,32 @@ class WatchListsController < ApplicationController
     kbook.save
     render json: {book: book, pp_book: pp_book, kin_book: kbook}
 
+  end
 
+  def search
+    key = URI.escape(params[:keywd])
+    url = 'https://www.amazon.co.jp/s/ref=nb_sb_noss?__mk_ja_JP=%E3%82%AB%E3%82%BF%E3%82%AB%E3%83%8A&url=search-alias%3Dstripbooks&field-keywords=' + key
+    # url = 'https://www.amazon.co.jp/s/ref=nb_sb_noss_2?__mk_ja_JP=%E3%82%AB%E3%82%BF%E3%82%AB%E3%83%8A&url=search-alias%3Dstripbooks&field-keywords=' + key + '&rh=n%3A465392%2Ck%3A' +  key
+    p
 
+    opt = {}
+    opt['User-Agent'] = 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_12_3) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/56.0.2924.87 Safari/537.36'
 
+    charset = nil
+    html = open(url,opt) do |f|
+      charset = f.charset # 文字種別を取得
+      f.read # htmlを読み込んで変数htmlに渡す
+    end
+
+# htmlをパース(解析)してオブジェクトを生成
+    doc = Nokogiri::HTML.parse(html, nil, charset)
+    @searched_books = []
+    doc.css('.a-link-normal.s-access-detail-page.a-text-normal').each do |book|
+      # s_book = {}
+      s_book = {title:book['title'], link: book['href']}
+      @searched_books.push(s_book)
+    end
+
+    @searched_books
   end
 end
