@@ -1,0 +1,16 @@
+<h1>WatchLists#search</h1>
+<table>
+  <thead>
+    <tr>
+      <th>タイトル</th>
+    </tr>
+  </thead>
+  <tbody>
+    <!--<%= @searched_books %>-->
+    <% @searched_books.each do |book| %>
+      <tr class="aaaa">
+        <td><%= book[:title] %></td>
+      </tr>
+    <% end %>
+  </tbody>
+</table>
