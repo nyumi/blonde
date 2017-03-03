@@ -59,9 +59,7 @@ class WatchListsController < ApplicationController
 #     kbook = KindleBook.new(book_id: book.id, price: kin_price, published_date: future_pub_date, point: kin_point )
 #     kbook.save
 #     render json: {book: book, pp_book: pp_book, kin_book: kbook}
-    render json: {book: book, pp_book: pp_book}
-#     render action: 'index'
-
+    redirect_to root_path
   end
 
   def search
