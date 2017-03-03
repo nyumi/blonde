@@ -1,4 +1,5 @@
-class CreateWatchListViews < ActiveRecord::Migration[5.0]
+require_relative "20170226105757_create_watch_list_views"
+class AddUserIdToWatchListViews < ActiveRecord::Migration[5.0]
   TABLE_NAME = "watch_list_views"
 
   def up
@@ -6,7 +7,8 @@ class CreateWatchListViews < ActiveRecord::Migration[5.0]
   end
 
   def down
-    execute drop_view_sql
+    CreateWatchListViews.up
+
   end
 
   def create_view_sql
@@ -20,18 +22,19 @@ class CreateWatchListViews < ActiveRecord::Migration[5.0]
     end
   end
 
-  def drop_view_sql
-    "DROP VIEW #{TABLE_NAME}"
-  end
 
   def create_postgresql_view_sql
+    # "#{CreateWatchListViews.down} if exists;"
+
     "
-    create or replace view #{TABLE_NAME}
+    DROP VIEW IF EXISTS  #{TABLE_NAME};
+    CREATE OR REPLACE VIEW #{TABLE_NAME}
     as
       SELECT
         bk.title,
         bk.author,
         bk.publish_date,
+        bk.user_id,
         ppbk.price as pp_price,
         ppbk.point as pp_point,
         kdbk.price as kd_price,

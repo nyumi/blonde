@@ -1,13 +1,11 @@
-# URLにアクセスするためのライブラリの読み込み
 require 'open-uri'
-# Nokogiriライブラリの読み込み
 require 'nokogiri'
 require 'date'
 require 'uri'
 
 class WatchListsController < ApplicationController
   def index
-    @watch_lists = WatchListView.all
+    @watch_lists = WatchListView.where(user_id:current_user.id)
   end
 
   def add
