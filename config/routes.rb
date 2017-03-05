@@ -1,11 +1,7 @@
 Rails.application.routes.draw do
   root 'watch_lists#index'
 
-  # root 'pages#index'
-
-  # get 'book', to: 'watch_lists#add'
-
-  post 'search', to: 'watch_lists#search'
+  get 'search', to: 'watch_lists#search'
   post 'add', to: 'watch_lists#add'
 
 

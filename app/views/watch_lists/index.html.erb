@@ -1,6 +1,6 @@
 <h1>WatchLists#index</h1>
 
-<%= form_tag({controller: :watch_lists, action: :search}, id: :fm, class: :search) do %>
+<%= form_tag("/search", method: "get") do %>
     検索ワード
     <%= text_field_tag :keywd, '', size:30 %>
     <%= submit_tag '検索' %>
