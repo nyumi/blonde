@@ -16,8 +16,8 @@
       <th>出版日</th>
       <th>紙の値段</th>
       <th>紙のポイント</th>
-      <th>kindleの値段</th>
       <th>kindleの出版日</th>
+      <th>kindleの値段</th>
       <th>kindleのポイント</th>
     </tr>
   </thead>
@@ -27,10 +27,12 @@
         <td><%= wlist.title %></td>
         <td><%= wlist.author %></td>
         <td><%= wlist.publish_date %></td>
-        <td><%= wlist.pp_price %></td>
+        <td>
+          <%= link_to wlist.pp_price, wlist.pp_link, target: "_blank" %>
+        </td>
         <td><%= wlist.pp_point %></td>
-        <td><%= wlist.kd_price %></td>
         <td><%= wlist.kd_published_date %></td>
+        <td><%= link_to wlist.kd_price, wlist.kd_link, target: "_blank" %></td>
         <td><%= wlist.kd_point %></td>
       </tr>
 
