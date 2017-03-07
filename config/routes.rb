@@ -3,6 +3,7 @@ Rails.application.routes.draw do
 
   get 'search', to: 'watch_lists#search'
   post 'add', to: 'watch_lists#add'
+  resource :watch_lists, only: [:destroy]
 
 
   # get 'pages/show'
