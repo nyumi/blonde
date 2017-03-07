@@ -24,12 +24,11 @@
   <tbody>
     <% @watch_lists.each do |wlist| %>
       <tr>
+        <td><%= link_to "×", { :action => "destroy", :id => wlist.id }, method: :delete, data: { confirm: 'Are you sure?'} %></td>
         <td><%= wlist.title %></td>
         <td><%= wlist.author %></td>
         <td><%= wlist.publish_date %></td>
-        <td>
-          <%= link_to wlist.pp_price, wlist.pp_link, target: "_blank" %>
-        </td>
+        <td><%= link_to wlist.pp_price, wlist.pp_link, target: "_blank" %></td>
         <td><%= wlist.pp_point %></td>
         <td><%= wlist.kd_published_date %></td>
         <td><%= link_to wlist.kd_price, wlist.kd_link, target: "_blank" %></td>

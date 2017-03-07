@@ -9,9 +9,11 @@ class WatchListsController < ApplicationController
 
   end
 
-  def delete
+  def destroy
     # Bookidで指定してBookモデルのdestroy
-
+    book = Book.find_by(id:params[:id])
+    book.destroy
+    redirect_to root_path
   end
 
   def add
