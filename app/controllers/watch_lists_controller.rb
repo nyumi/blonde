@@ -9,32 +9,38 @@ class WatchListsController < ApplicationController
 
   end
 
+  def delete
+    # Bookidで指定してBookモデルのdestroy
+
+  end
+
   def add
     doc = scrape(params[:link])
 
     if kindle?(doc)
       # 紙本のリンク取得
-      url = "https://www.amazon.co.jp" +
+        pp_url = "https://www.amazon.co.jp" +
           doc.at_css('.top-level.unselected-row .dp-title-col .title-text')['href']
-      ppdoc = scrape(url)
+      ppdoc = scrape(pp_url)
       # コミック情報登録
       book = save_book(ppdoc)
-      save_paper_book(ppdoc, book)
+      save_paper_book(ppdoc, book,pp_url)
       # Kindle情報登録
-      save_kindle_book(doc,book)
+      save_kindle_book(doc, book, params[:link])
 
     else #文庫には対応しない
       # コミック情報登録
       book = save_book(doc)
-      save_paper_book(doc, book)
+      save_paper_book(doc, book, params[:link])
 
       # Kindleリンク探しに行く
       noko_link = doc.at_css(".a-button.a-spacing-mini.a-button-toggle.format > .a-button-inner > a")
       if noko_link
-        kindle_link = noko_link['href']
-        save_kindle_book(scrape(kindle_link),book)
+        kindle_link = "https://www.amazon.co.jp" + noko_link['href']
+        save_kindle_book(scrape(kindle_link),book, kindle_link)
       end
     end
+    redirect_to root_path
   end
 
   # Kindleかどうか判定する
@@ -100,7 +106,8 @@ class WatchListsController < ApplicationController
   # 受け取ったNokogiriオブジェクトから紙の本の情報をPaperBookテーブルに保存する
   # @param [Nokogiri] scraped_data PaperBookテーブルに必要なデータが入っているNokogiriオブジェクト　
   # @param [Book] book 紐づくBookオブジェクト
-  def save_paper_book(scraped_data, book)
+  # @param [String] url 紙本の詳細リンク
+  def save_paper_book(scraped_data, book, url)
     # 紙本価格
     html_price  = scraped_data.at_css('.a-size-medium.a-color-price.offer-price.a-text-normal').text
     price =  html_price[2, html_price.length-1].to_i
@@ -109,14 +116,15 @@ class WatchListsController < ApplicationController
     html_point = scraped_data.at_css('#buyBoxInner .a-color-price').text.gsub(/(\r\n|\r|\n|\s|￥)/, "")
     point =  /pt/.match(html_point).pre_match.gsub(/,/,"").to_i
 
-    pp_book = PaperBook.new(price: price, point: point, book_id: book.id)
+    pp_book = PaperBook.new(price: price, point: point, book_id: book.id, detail_link: url)
     pp_book.save
   end
 
   # 受け取ったNokogiriオブジェクトから紙の本の情報をKindleBookテーブルに保存する
   # @param [Nokogiri] scraped_data KindleBookテーブルに必要なデータが入っているNokogiriオブジェクト　
   # @param [Book] book 紐づくBookオブジェクト
-  def save_kindle_book(scraped_data, book)
+  # @param [String] url Kindle本の詳細リンク
+  def save_kindle_book(scraped_data, book, url)
     # Kindle価格を取得
     noko_price = scraped_data.at_css('.a-color-price.a-size-medium.a-align-bottom')
     noko_price.children&.children&.remove
@@ -131,7 +139,7 @@ class WatchListsController < ApplicationController
     k_pub_date = scraped_data.at_css('.a-button-stack .a-section.a-text-center .a-size-mini > span > b')&.text
     future_pub_date = Date.parse(k_pub_date) if k_pub_date
 
-    kbook = KindleBook.new(book_id: book.id, price: price, published_date: future_pub_date, point: kin_point )
+    kbook = KindleBook.new(book_id: book.id, price: price, published_date: future_pub_date, point: kin_point, detail_link: url)
     kbook.save
   end
 end
