@@ -10,7 +10,6 @@ class WatchListsController < ApplicationController
   end
 
   def destroy
-    # Bookidで指定してBookモデルのdestroy
     book = Book.find_by(id:params[:id])
     book.destroy
     redirect_to root_path
@@ -21,7 +20,7 @@ class WatchListsController < ApplicationController
 
     if kindle?(doc)
       # 紙本のリンク取得
-        pp_url = "https://www.amazon.co.jp" +
+      pp_url = "https://www.amazon.co.jp" +
           doc.at_css('.top-level.unselected-row .dp-title-col .title-text')['href']
       ppdoc = scrape(pp_url)
       # コミック情報登録
@@ -60,12 +59,21 @@ class WatchListsController < ApplicationController
 
     doc = scrape(url)
     @searched_books = []
-    doc.css('.a-link-normal.s-access-detail-page.a-text-normal').each do |book|
-      s_book = {title:book['title'], link: book['href']}
+    doc.css('.s-result-item.celwidget').each do |book|
+      s_book = {title: book.at_css('.a-link-normal.s-access-detail-page.a-text-normal')['title'],
+                link: book.at_css('.a-link-normal.a-text-normal')['href'],
+                img: book.at_css('.a-link-normal.a-text-normal > img')['src']}
       @searched_books.push(s_book)
     end
 
     @searched_books
+  end
+
+  # 受け取ったNokogiriオブジェクト内からimgを取得して返す
+  # @param [Nokogiri] doc imgをスクレイプする対象のNokogiriオブジェクト
+  # @return [String] img_link スクレイプ結果のimgリンク
+  def retreve_image(doc)
+
   end
 
   # 受け取ったURLで返ってくるHTMLをスクレイピングする
