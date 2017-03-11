@@ -4,6 +4,9 @@ require 'date'
 require 'uri'
 
 class WatchListsController < ApplicationController
+
+  DOMAIN = "https://www.amazon.co.jp"
+
   def index
     @watch_lists = WatchListView.where(user_id:current_user.id)
 
@@ -21,12 +24,12 @@ class WatchListsController < ApplicationController
 
     if kindle?(doc)
       # 紙本のリンク取得
-      pp_url = "https://www.amazon.co.jp" +
-          doc.at_css('.top-level.unselected-row .dp-title-col .title-text')['href']
+      pp_url =  URI.encode(DOMAIN + doc.at_css('.top-level.unselected-row .dp-title-col .title-text')['href'])
       ppdoc = scrape(pp_url)
       # コミック情報登録
       book = save_book(ppdoc,img)
       save_paper_book(ppdoc, book,pp_url)
+
       # Kindle情報登録
       save_kindle_book(doc, book, params[:link])
 
@@ -38,7 +41,7 @@ class WatchListsController < ApplicationController
       # Kindleリンク探しに行く
       noko_link = doc.at_css(".a-button.a-spacing-mini.a-button-toggle.format > .a-button-inner > a")
       if noko_link
-        kindle_link = "https://www.amazon.co.jp" + noko_link['href']
+        kindle_link = URI.escape(DOMAIN + noko_link['href'])
         save_kindle_book(scrape(kindle_link),book, kindle_link)
       end
     end
@@ -54,7 +57,8 @@ class WatchListsController < ApplicationController
 
   def search
     key = URI.escape(params[:keywd])
-    url = 'https://www.amazon.co.jp/s/ref=nb_sb_noss' +
+    url = DOMAIN +
+          '/s/ref=nb_sb_noss' +
           '?__mk_ja_JP=%E3%82%AB%E3%82%BF%E3%82%AB%E3%83%8A&url=search-alias%3Dstripbooks&field-keywords=' +
           key
 
