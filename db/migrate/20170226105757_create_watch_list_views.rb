@@ -26,7 +26,8 @@ class CreateWatchListViews < ActiveRecord::Migration[5.0]
 
   def create_postgresql_view_sql
     "
-    create or replace view #{TABLE_NAME}
+    DROP VIEW IF EXISTS  #{TABLE_NAME};
+    CREATE VIEW #{TABLE_NAME}
     as
       SELECT
         bk.title,

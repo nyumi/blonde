@@ -4,13 +4,15 @@ require 'date'
 require 'uri'
 
 class WatchListsController < ApplicationController
+
+  DOMAIN = "https://www.amazon.co.jp"
+
   def index
     @watch_lists = WatchListView.where(user_id:current_user.id)
 
   end
 
   def destroy
-    # Bookidで指定してBookモデルのdestroy
     book = Book.find_by(id:params[:id])
     book.destroy
     redirect_to root_path
@@ -18,27 +20,28 @@ class WatchListsController < ApplicationController
 
   def add
     doc = scrape(params[:link])
+    img = params[:img]
 
     if kindle?(doc)
       # 紙本のリンク取得
-        pp_url = "https://www.amazon.co.jp" +
-          doc.at_css('.top-level.unselected-row .dp-title-col .title-text')['href']
+      pp_url =  URI.encode(DOMAIN + doc.at_css('.top-level.unselected-row .dp-title-col .title-text')['href'])
       ppdoc = scrape(pp_url)
       # コミック情報登録
-      book = save_book(ppdoc)
+      book = save_book(ppdoc,img)
       save_paper_book(ppdoc, book,pp_url)
+
       # Kindle情報登録
       save_kindle_book(doc, book, params[:link])
 
     else #文庫には対応しない
       # コミック情報登録
-      book = save_book(doc)
+      book = save_book(doc,img)
       save_paper_book(doc, book, params[:link])
 
       # Kindleリンク探しに行く
       noko_link = doc.at_css(".a-button.a-spacing-mini.a-button-toggle.format > .a-button-inner > a")
       if noko_link
-        kindle_link = "https://www.amazon.co.jp" + noko_link['href']
+        kindle_link = URI.escape(DOMAIN + noko_link['href'])
         save_kindle_book(scrape(kindle_link),book, kindle_link)
       end
     end
@@ -54,18 +57,28 @@ class WatchListsController < ApplicationController
 
   def search
     key = URI.escape(params[:keywd])
-    url = 'https://www.amazon.co.jp/s/ref=nb_sb_noss' +
+    url = DOMAIN +
+          '/s/ref=nb_sb_noss' +
           '?__mk_ja_JP=%E3%82%AB%E3%82%BF%E3%82%AB%E3%83%8A&url=search-alias%3Dstripbooks&field-keywords=' +
           key
 
     doc = scrape(url)
     @searched_books = []
-    doc.css('.a-link-normal.s-access-detail-page.a-text-normal').each do |book|
-      s_book = {title:book['title'], link: book['href']}
+    doc.css('.s-result-item.celwidget').each do |book|
+      s_book = {title: book.at_css('.a-link-normal.s-access-detail-page.a-text-normal')['title'],
+                link: book.at_css('.a-link-normal.a-text-normal')['href'],
+                img: retreve_image(book)}
       @searched_books.push(s_book)
     end
 
     @searched_books
+  end
+
+  # 受け取ったNokogiriオブジェクト内からimgを取得して返す
+  # @param [Nokogiri] doc imgをスクレイプする対象のNokogiriオブジェクト
+  # @return [String] スクレイプ結果のimgリンク
+  def retreve_image(doc)
+    doc.at_css('.a-link-normal.a-text-normal > img')['src']
   end
 
   # 受け取ったURLで返ってくるHTMLをスクレイピングする
@@ -89,7 +102,7 @@ class WatchListsController < ApplicationController
   # 受け取ったNokogiriオブジェクトから本の情報をBookテーブルに保存する
   # @param [Nokogiri] scraped_data Bookテーブルに必要なデータが入っているNokogiriオブジェクト　
   # @return [Book] 保存されたBookオブジェクト
-  def save_book(scraped_data)
+  def save_book(scraped_data, img)
     # 作者とタイトル等の情報
     book_data = scraped_data.title.split("|")
     pub_date =  scraped_data.css("#title > .a-size-medium.a-color-secondary.a-text-normal")[1].text # – 2016/12/31
@@ -100,7 +113,8 @@ class WatchListsController < ApplicationController
     book = Book.new(title: title,
                     author: author,
                     user_id: current_user.id,
-                    publish_date: Date.parse(pub_date[2, pub_date.length-1]))
+                    publish_date: Date.parse(pub_date[2, pub_date.length-1]),
+                    img: img)
     book.save
     book
   end
