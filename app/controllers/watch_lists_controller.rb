@@ -67,7 +67,7 @@ class WatchListsController < ApplicationController
     doc.css('.s-result-item.celwidget').each do |book|
       s_book = {title: book.at_css('.a-link-normal.s-access-detail-page.a-text-normal')['title'],
                 link: book.at_css('.a-link-normal.a-text-normal')['href'],
-                img: book.at_css('.a-link-normal.a-text-normal > img')['src']}
+                img: retreve_image(book)}
       @searched_books.push(s_book)
     end
 
@@ -76,9 +76,9 @@ class WatchListsController < ApplicationController
 
   # 受け取ったNokogiriオブジェクト内からimgを取得して返す
   # @param [Nokogiri] doc imgをスクレイプする対象のNokogiriオブジェクト
-  # @return [String] img_link スクレイプ結果のimgリンク
+  # @return [String] スクレイプ結果のimgリンク
   def retreve_image(doc)
-
+    doc.at_css('.a-link-normal.a-text-normal > img')['src']
   end
 
   # 受け取ったURLで返ってくるHTMLをスクレイピングする
