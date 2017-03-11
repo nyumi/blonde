@@ -17,6 +17,7 @@ class WatchListsController < ApplicationController
 
   def add
     doc = scrape(params[:link])
+    img = params[:img]
 
     if kindle?(doc)
       # 紙本のリンク取得
@@ -24,14 +25,14 @@ class WatchListsController < ApplicationController
           doc.at_css('.top-level.unselected-row .dp-title-col .title-text')['href']
       ppdoc = scrape(pp_url)
       # コミック情報登録
-      book = save_book(ppdoc)
+      book = save_book(ppdoc,img)
       save_paper_book(ppdoc, book,pp_url)
       # Kindle情報登録
       save_kindle_book(doc, book, params[:link])
 
     else #文庫には対応しない
       # コミック情報登録
-      book = save_book(doc)
+      book = save_book(doc,img)
       save_paper_book(doc, book, params[:link])
 
       # Kindleリンク探しに行く
@@ -97,7 +98,7 @@ class WatchListsController < ApplicationController
   # 受け取ったNokogiriオブジェクトから本の情報をBookテーブルに保存する
   # @param [Nokogiri] scraped_data Bookテーブルに必要なデータが入っているNokogiriオブジェクト　
   # @return [Book] 保存されたBookオブジェクト
-  def save_book(scraped_data)
+  def save_book(scraped_data, img)
     # 作者とタイトル等の情報
     book_data = scraped_data.title.split("|")
     pub_date =  scraped_data.css("#title > .a-size-medium.a-color-secondary.a-text-normal")[1].text # – 2016/12/31
@@ -108,7 +109,8 @@ class WatchListsController < ApplicationController
     book = Book.new(title: title,
                     author: author,
                     user_id: current_user.id,
-                    publish_date: Date.parse(pub_date[2, pub_date.length-1]))
+                    publish_date: Date.parse(pub_date[2, pub_date.length-1]),
+                    img: img)
     book.save
     book
   end

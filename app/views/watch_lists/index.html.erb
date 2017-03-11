@@ -24,6 +24,7 @@
   <tbody>
     <% @watch_lists.each do |wlist| %>
       <tr>
+        <td><%= image_tag(wlist.img) %></td>
         <td><%= link_to "×", { :action => "destroy", :id => wlist.id }, method: :delete, data: { confirm: 'Are you sure?'} %></td>
         <td><%= wlist.title %></td>
         <td><%= wlist.author %></td>

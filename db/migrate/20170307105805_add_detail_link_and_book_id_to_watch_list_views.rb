@@ -7,8 +7,8 @@ class AddDetailLinkAndBookIdToWatchListViews < ActiveRecord::Migration[5.0]
   end
 
   def down
-    AddUserIdToWatchListViews.up
-
+    AddUserIdToWatchListViews.new.down
+    AddUserIdToWatchListViews.new.up
   end
 
   def create_view_sql
@@ -26,7 +26,7 @@ class AddDetailLinkAndBookIdToWatchListViews < ActiveRecord::Migration[5.0]
   def create_postgresql_view_sql
     "
     DROP VIEW IF EXISTS  #{TABLE_NAME};
-    CREATE OR REPLACE VIEW #{TABLE_NAME}
+    CREATE VIEW #{TABLE_NAME}
     as
       SELECT
         bk.id,
