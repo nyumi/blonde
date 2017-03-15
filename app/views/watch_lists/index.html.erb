@@ -1,27 +1,15 @@
+
 <div class="row">
-  <%= form_tag("/search", method: "get", class:"input-field validate col s12", id:"search-example") do %>
+  <%= form_tag("/search", method: "get", class:"col s12") do %>
     <div class="input-field ">
       <i class="material-icons prefix">search</i>
-      <label for="icon_prefix">Key Words</label>
-      <%= text_field_tag :keywd, '', size:30 %>
+      <input id="search_words" type="text" name="keywd" class="validate">
+      <label for="search_words">Key Words</label>
     </div>
   <% end %>
-
-  <!--　<form action="users" method="post">-->
-     <!--<input class="page_name" id="keywd" name="keywd" type="text" />-->
-    <!--</form>-->
-
 </div>
-<div class="row">
-  <form class="col s12">
-    <div class="input-field ">
-      <i class="material-icons prefix">account_circle</i>
-      <input id="icon_prefix" type="text" class="validate">
-      <label for="icon_prefix">First Name</label>
-    </div>
-  </form>
-</div>
-<table class="striped">
+
+<table class="striped z-depth-2">
   <thead>
     <tr>
       <th></th>

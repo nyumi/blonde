@@ -56,7 +56,8 @@ class WatchListsController < ApplicationController
   end
 
   def search
-    key = URI.escape(params[:keywd])
+    @keywords = params[:keywd]
+    key = URI.escape(@keywords)
     url = DOMAIN +
           '/s/ref=nb_sb_noss' +
           '?__mk_ja_JP=%E3%82%AB%E3%82%BF%E3%82%AB%E3%83%8A&url=search-alias%3Dstripbooks&field-keywords=' +
@@ -70,8 +71,6 @@ class WatchListsController < ApplicationController
                 img: retreve_image(book)}
       @searched_books.push(s_book)
     end
-
-    @searched_books
   end
 
   # 受け取ったNokogiriオブジェクト内からimgを取得して返す

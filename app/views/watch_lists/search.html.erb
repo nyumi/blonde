@@ -1,4 +1,14 @@
-<h1>検索結果</h1>
+<div class="row">
+  <%= form_tag("/search", method: "get", class:"col s12") do %>
+    <div class="input-field ">
+      <i class="material-icons prefix active">search</i>
+      <input id="search_words" type="text" name="keywd" value="<%= @keywords %>" class="validate">
+      <label for="search_words" class="active">Key Words</label>
+    </div>
+  <% end %>
+</div>
+
+
 
 <div class="row">
   <% @searched_books.each do |book| %>
