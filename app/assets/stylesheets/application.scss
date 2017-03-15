@@ -15,3 +15,17 @@
  *= require material_icons
  */
 @import "materialize";
+@keyframes moveimg {
+  0% { left: 0px; top: 0px;}
+  100% { left: 700px; }
+}
+
+#piggy1{
+  animation: moveimg 7s infinite;
+  position: relative;
+}
+
+.header {
+    color: #ee6e73;
+    font-weight: 300;
+}
