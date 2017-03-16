@@ -9,7 +9,39 @@ class WatchListsController < ApplicationController
 
   def index
     @watch_lists = WatchListView.where(user_id:current_user.id)
-
+    @watch_lists2 = []
+    @watch_lists.each do |l|
+      w = {}
+      w["list"] = l
+      w["data"] = {
+          labels: [
+            Date.today, Date.today+1, Date.today+2, Date.today+3, Date.today+4, Date.today+5, Date.today+6,
+            Date.today+7, Date.today+8, Date.today+9, Date.today+10, Date.today+11, Date.today+12, Date.today+13
+          ],
+          datasets: [
+            {
+                label: "Paper Point",
+                backgroundColor: "rgba(255,205,210,0.2)",
+                borderColor: "rgba(255,205,210,1)",
+                data: [
+                  650, 590, 800, 810, 560, 550, 400,
+                  650, 590, 800, 810, 560, 550, 400
+                ]
+            },
+            {
+                label: "Kindle Point",
+                backgroundColor: "rgba(225,190,231,0.2)",
+                borderColor: "rgba(225,190,231,1)",
+                data: [
+                  280, 480, 400, 190, 860, 270, 900,
+                  280, 480, 400, 190, 860, 270, 900
+                ]
+            }
+          ]
+        }
+      w["options"] = {:height => 100}
+      @watch_lists2.push(w)
+    end
   end
 
   def destroy

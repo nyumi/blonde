@@ -20,9 +20,9 @@
         <div class="card-content">
           <p><%= book[:title] %></p>
         </div>
-        <div class="card-action">
+        <div class="card-action right-align">
           <%= form_tag({controller: :watch_lists, action: :add}, class: :add) do %>
-              <button class="btn-floating btn-large waves-effect waves-light red" type="submit" name="action">
+              <button class="btn-floating btn waves-effect waves-light red lighten-2 " type="submit" name="action">
               <i class="material-icons">add</i>
             </button>
             <%= hidden_field_tag :link , book[:link] %>
