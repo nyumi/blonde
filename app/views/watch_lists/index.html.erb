@@ -9,34 +9,36 @@
   <% end %>
 </div>
 
-<table class="striped z-depth-2">
+
+<table class="z-depth-2">
   <thead>
-    <tr>
+    <tr class="table-header">
       <th></th>
-      <th>画像</th>
-      <th>タイトル</th>
-      <th>著者</th>
-      <th>紙の本</th>
+      <th></th>
+      <th>書籍</th>
+      <th>紙</th>
       <th>kindle</th>
     </tr>
   </thead>
   <tbody>
-    <% @watch_lists.each do |wlist| %>
+    <% @watch_lists2.each do |wlist| %>
       <tr>
-        <td><%= link_to "×", { :action => "destroy", :id => wlist.id }, method: :delete, data: { confirm: 'Are you sure?'} %></td>
-        <td><%= image_tag(wlist.img) %></td>
-        <td><%= wlist.title %></td>
-        <td><%= wlist.author %></td>
-        <td><%= wlist.publish_date %>
-            <%= link_to wlist.pp_price, wlist.pp_link, target: "_blank" %> /
-            <%= wlist.pp_point %>
+        <td rowspan="2"><%= link_to "×", { :action => "destroy", :id => wlist["list"].id }, method: :delete, data: { confirm: 'Are you sure?'} %></td>
+        <td rowspan="2"><%= image_tag(wlist["list"].img) %></td>
+        <td><div><span class="label">タイトル:</span><span class="title"><%= wlist["list"].title %></span></div>
+             <div><span class="label">著者:</span><%= wlist["list"].author %></td></div>
+        <td><div><span class="label">発売:</span><%= wlist["list"].publish_date ? wlist["list"].publish_date : "-" %></div>
+            <div><span class="label">価格:</span><%= link_to wlist["list"].pp_price, wlist["list"].pp_link, target: "_blank" %></div>
+            <div><span class="label">ポイント:</span><%= wlist["list"].pp_point %></div>
         </td>
-        <td><%= wlist.kd_published_date %>
-            <%= link_to wlist.kd_price, wlist.kd_link, target: "_blank" %> /
-            <%= wlist.kd_point %>
+        <td><div><span class="label">発売:</span><%= wlist["list"].kd_published_date ? wlist["list"].kd_published_date : "-" %></div>
+            <div><span class="label">価格:</span><%= link_to wlist["list"].kd_price, wlist["list"].kd_link, target: "_blank" %></div>
+            <div><span class="label">ポイント:</span><%= wlist["list"].kd_point %></div>
         </td>
       </tr>
-
+      <tr>
+        <td colspan="3"><%= line_chart wlist["data"], wlist["options"] %></td>
+      </tr>
     <% end %>
   </tbody>
 </table>
