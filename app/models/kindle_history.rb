@@ -1,0 +1,2 @@
+class KindleHistory < ApplicationRecord
+end

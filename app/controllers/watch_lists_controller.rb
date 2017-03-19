@@ -132,8 +132,10 @@ class WatchListsController < ApplicationController
     html_point = scraped_data.at_css('#buyBoxInner .a-color-price').text.gsub(/(\r\n|\r|\n|\s|￥)/, "")
     point =  /pt/.match(html_point).pre_match.gsub(/,/,"").to_i
 
-    pp_book = PaperBook.new(price: price, point: point, book_id: book.id, detail_link: url)
+    pp_book = PaperBook.new(book_id: book.id, detail_link: url)
     pp_book.save
+    history = PaperHistory.new(price: price, point: point, book_id: book.id)
+    history.save
   end
 
   # 受け取ったNokogiriオブジェクトから紙の本の情報をKindleBookテーブルに保存する
@@ -155,8 +157,10 @@ class WatchListsController < ApplicationController
     k_pub_date = scraped_data.at_css('.a-button-stack .a-section.a-text-center .a-size-mini > span > b')&.text
     future_pub_date = Date.parse(k_pub_date) if k_pub_date
 
-    kbook = KindleBook.new(book_id: book.id, price: price, published_date: future_pub_date, point: kin_point, detail_link: url)
+    kbook = KindleBook.new(book_id: book.id, published_date: future_pub_date, detail_link: url)
     kbook.save
+    history = KindleHistory.new(book_id: book.id, price: price, point: kin_point)
+    history.save
   end
 end
 
