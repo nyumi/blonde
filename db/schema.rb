@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 20170309103915) do
+ActiveRecord::Schema.define(version: 20170319141725) do
 
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
@@ -27,21 +27,33 @@ ActiveRecord::Schema.define(version: 20170309103915) do
 
   create_table "kindle_books", force: :cascade do |t|
     t.integer  "book_id"
-    t.integer  "price"
     t.date     "published_date"
-    t.integer  "point"
     t.datetime "created_at",     null: false
     t.datetime "updated_at",     null: false
     t.string   "detail_link"
   end
 
-  create_table "paper_books", force: :cascade do |t|
+  create_table "kindle_histories", force: :cascade do |t|
     t.integer  "book_id"
     t.integer  "price"
     t.integer  "point"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+  end
+
+  create_table "paper_books", force: :cascade do |t|
+    t.integer  "book_id"
     t.datetime "created_at",  null: false
     t.datetime "updated_at",  null: false
     t.string   "detail_link"
+  end
+
+  create_table "paper_histories", force: :cascade do |t|
+    t.integer  "book_id"
+    t.integer  "price"
+    t.integer  "point"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
   end
 
   create_table "users", force: :cascade do |t|
