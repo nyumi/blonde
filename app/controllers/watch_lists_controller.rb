@@ -8,9 +8,9 @@ class WatchListsController < ApplicationController
   DOMAIN = "https://www.amazon.co.jp"
 
   def index
-    @watch_lists = WatchListView.where(user_id:current_user.id)
-    @watch_lists2 = []
-    @watch_lists.each do |l|
+    tmp = WatchListView.where(user_id:current_user.id)
+    @watch_lists = []
+    tmp.each do |l|
       w = {}
       w["list"] = l
       w["data"] = {
@@ -40,7 +40,7 @@ class WatchListsController < ApplicationController
           ]
         }
       w["options"] = {:height => 100}
-      @watch_lists2.push(w)
+      @watch_lists.push(w)
     end
   end
 
