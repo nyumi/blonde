@@ -7,17 +7,30 @@ class WatchListsController < ApplicationController
 
   DOMAIN = "https://www.amazon.co.jp"
 
+  # ユーザー毎のWatchList表示する。
   def index
-    tmp = WatchListView.where(user_id:current_user.id)
-    @watch_lists = []
-    tmp.each do |l|
+    cuid = current_user.id
+
+    list = WatchListView.where(user_id:cuid)
+    book_ids = list.map {|book| book.id}
+
+
+    kindle_histories = KindleHistory.where(book_id: book_ids).map do |history|
+      { history.created_at.to_date.to_s => history.point }
+    end
+
+    paper_histories = PaperHistory.where(book_id: book_ids).map do |history|
+      { history.created_at.to_date.to_s => history.point }
+    end
+    kin_date =  kindle_histories.map {|k_his| k_his.keys}.flatten
+    pp_date = paper_histories.map {|p_his| p_his.keys}.flatten
+    marged_date = kin_date&pp_date
+
+    @watch_lists = list.map do |l|
       w = {}
       w["list"] = l
       w["data"] = {
-          labels: [
-            Date.today, Date.today+1, Date.today+2, Date.today+3, Date.today+4, Date.today+5, Date.today+6,
-            Date.today+7, Date.today+8, Date.today+9, Date.today+10, Date.today+11, Date.today+12, Date.today+13
-          ],
+          labels:marged_date  ,
           datasets: [
             {
                 label: "Paper Point",
@@ -40,7 +53,7 @@ class WatchListsController < ApplicationController
           ]
         }
       w["options"] = {:height => 100}
-      @watch_lists.push(w)
+      w
     end
   end
 
