@@ -1,5 +1,5 @@
-require_relative "20170309103915_add_img_for_watch_list_views"
-class ModifyWatchListViews < ActiveRecord::Migration[5.0]
+require_relative "20170319141700_modify_watch_list_views"
+class ModifySelectQueryOfWatchListViews < ActiveRecord::Migration[5.0]
   TABLE_NAME = "watch_list_views"
 
   def up
@@ -7,8 +7,8 @@ class ModifyWatchListViews < ActiveRecord::Migration[5.0]
   end
 
   def down
-    AddImgForWatchListViews.new.down
-    AddImgForWatchListViews.new.up
+    ModifyWatchListViews.new.down
+    ModifyWatchListViews.new.up
   end
 
   def create_view_sql
@@ -48,28 +48,26 @@ class ModifyWatchListViews < ActiveRecord::Migration[5.0]
               ON bk.id = kdbk.book_id
           LEFT OUTER JOIN (
               SELECT
-                  book_id,
-                  price,
-                  point,
-                  MAX(created_at)
-              FROM  paper_histories
-              GROUP BY
-                book_id,
+                book_id ,
                 price,
-                point
-          ) as pphis
+                point,
+                created_at
+                from paper_histories as a
+                where id = (
+                    select id from paper_histories as b
+                    where a.book_id = b.book_id order by created_at desc limit 1)
+           ) as pphis
               ON bk.id = pphis.book_id
           LEFT OUTER JOIN (
               SELECT
-                  book_id,
-                  price,
-                  point,
-                  MAX(created_at)
-              FROM  kindle  _histories
-              GROUP BY
-                book_id,
+                book_id ,
                 price,
-                point
+                point,
+                created_at
+                from kindle_histories as a
+                where id = (
+                    select id from kindle_histories as b
+                    where a.book_id = b.book_id order by created_at desc limit 1)
           ) as kinhis
               ON bk.id = kinhis.book_id
 

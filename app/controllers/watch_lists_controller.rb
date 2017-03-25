@@ -15,40 +15,45 @@ class WatchListsController < ApplicationController
     book_ids = list.map {|book| book.id}
 
 
-    kindle_histories = KindleHistory.where(book_id: book_ids).map do |history|
-      { history.created_at.to_date.to_s => history.point }
+    kindle_histories = KindleHistory.where(book_id: book_ids).reduce({})  do |histories,history|
+      b_history = histories[history.book_id]
+      if b_history == nil
+        b_history = {}
+      end
+      b_history.store(history.created_at.to_date.to_s, history.point)
+      histories.store(history.book_id, b_history)
+      histories
     end
 
-    paper_histories = PaperHistory.where(book_id: book_ids).map do |history|
-      { history.created_at.to_date.to_s => history.point }
+    paper_histories = PaperHistory.where(book_id: book_ids).reduce({}) do |histories,history|
+      b_history = histories[history.book_id]
+      if b_history == nil
+        b_history = {}
+      end
+      b_history.store(history.created_at.to_date.to_s, history.point)
+      histories.store(history.book_id, b_history)
+      histories
     end
-    kin_date =  kindle_histories.map {|k_his| k_his.keys}.flatten
-    pp_date = paper_histories.map {|p_his| p_his.keys}.flatten
-    marged_date = kin_date&pp_date
 
     @watch_lists = list.map do |l|
       w = {}
+      marged_date = kindle_histories[l.id].keys&paper_histories[l.id].keys
+      p marged_date
       w["list"] = l
       w["data"] = {
-          labels:marged_date  ,
+          labels:marged_date,
           datasets: [
             {
                 label: "Paper Point",
                 backgroundColor: "rgba(255,205,210,0.2)",
                 borderColor: "rgba(255,205,210,1)",
-                data: [
-                  650, 590, 800, 810, 560, 550, 400,
-                  650, 590, 800, 810, 560, 550, 400
-                ]
+                data: marged_date.map {|date|paper_histories[l.id][date]}
             },
             {
                 label: "Kindle Point",
                 backgroundColor: "rgba(225,190,231,0.2)",
                 borderColor: "rgba(225,190,231,1)",
-                data: [
-                  280, 480, 400, 190, 860, 270, 900,
-                  280, 480, 400, 190, 860, 270, 900
-                ]
+                data: marged_date.map {|date|kindle_histories[l.id][date]}
             }
           ]
         }
@@ -169,11 +174,11 @@ class WatchListsController < ApplicationController
   # @param [String] url 紙本の詳細リンク
   def save_paper_book(scraped_data, book, url)
     # 紙本価格
-    html_price  = scraped_data.at_css('.a-size-medium.a-color-price.offer-price.a-text-normal').text
+    html_price  = scraped_data.at_css('.a-size-medium.a-color-price.offer-price.a-text-normal').text.gsub(/,/,"")
     price =  html_price[2, html_price.length-1].to_i
 
     # 紙本ポイント
-    html_point = scraped_data.at_css('#buyBoxInner .a-color-price').text.gsub(/(\r\n|\r|\n|\s|￥)/, "")
+    html_point = scraped_data.at_css('#buyBoxInner .a-color-price').text.gsub(/(\r\n|\r|\n|\s|￥|,)/, "")
     point =  /pt/.match(html_point).pre_match.gsub(/,/,"").to_i
 
     pp_book = PaperBook.new(book_id: book.id, detail_link: url)
@@ -190,7 +195,7 @@ class WatchListsController < ApplicationController
     # Kindle価格を取得
     noko_price = scraped_data.at_css('.a-color-price.a-size-medium.a-align-bottom')
     noko_price.children&.children&.remove
-    html_price = noko_price.text
+    html_price = noko_price.text.gsub(/,/,"")
     # Kindleのpoint値取得
     html_point = scraped_data.at_css('.loyalty-points > .a-color-price.a-align-bottom').text
     # 改行とか消す
