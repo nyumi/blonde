@@ -7,7 +7,7 @@ namespace :blonds do
     paper_books.each do |book|
       paper_data = scrape(book.detail_link)
       # 紙本価格
-      html_price  = paper_data.at_css('.a-size-medium.a-color-price.offer-price.a-text-normal').text
+      html_price  = paper_data.at_css('.a-size-medium.a-color-price.offer-price.a-text-normal').text.gsub(/,/,"")
       price =  html_price[2, html_price.length-1].to_i
 
       # 紙本ポイント
@@ -28,7 +28,7 @@ namespace :blonds do
       # Kindle価格を取得
       kin_data = kindle_data.at_css('.a-color-price.a-size-medium.a-align-bottom')
       kin_data.children&.children&.remove
-      html_price = kin_data.text
+      html_price = kin_data.text.gsub(/,/,"")
       # Kindleのpoint値取得
       html_point = kindle_data.at_css('.loyalty-points > .a-color-price.a-align-bottom').text
       # 改行とか消す

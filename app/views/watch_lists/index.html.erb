@@ -21,7 +21,7 @@
     </tr>
   </thead>
   <tbody>
-    <% @watch_lists2.each do |wlist| %>
+    <% @watch_lists.each do |wlist| %>
       <tr>
         <td rowspan="2"><%= link_to "×", { :action => "destroy", :id => wlist["list"].id }, method: :delete, data: { confirm: 'Are you sure?'} %></td>
         <td rowspan="2"><%= image_tag(wlist["list"].img) %></td>
