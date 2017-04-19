@@ -6,6 +6,138 @@ require 'uri'
 class WatchListsController < ApplicationController
 
   DOMAIN = "https://www.amazon.co.jp"
+  # webページを表す
+  class Page
+    attr_reader :scraped_data, :url
+
+    # scrape
+    def initialize(url)
+      @url = URI.encode(url)
+      opt = {'User-Agent'=> 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_12_3) '+
+          'AppleWebKit/537.36 (KHTML, like Gecko) Chrome/56.0.2924.87 Safari/537.36'}
+
+      charset = nil
+      html = open(@url,opt) do |f|
+        charset = f.charset # 文字種別を取得
+        f.read
+      end
+      @scraped_data = Nokogiri::HTML.parse(html, nil, charset)
+    end
+  end
+
+  # Kindleページを表す
+  class KindlePage < Page
+
+    def initialize(page)
+      @scraped_data = page.scraped_data
+      @url = page.url
+    end
+
+    # 紙の本の情報に移動
+    def turn_to_paper
+      page = Page.new(DOMAIN + @scraped_data.at_css('.top-level.unselected-row .dp-title-col .title-text')['href'])
+      PaperPage.new(page)
+    end
+
+    def set_content(book_id)
+      KindleBook.new(
+          book_id: book_id,
+          published_date: publish_date,
+          detail_link: @url
+
+      )
+    end
+
+    def set_history(book_id)
+      KindleHistory.new(
+          book_id: book_id,
+          price: price,
+          point: point
+      )
+    end
+
+    def price
+      doc_price = @scraped_data.at_css('.a-color-price.a-size-medium.a-align-bottom')
+      doc_price.children&.children&.remove
+      text_price = doc_price.text
+      text_price.gsub(/(\r\n|\r|\n|\s|￥|,)/, "").to_i
+    end
+
+    def point
+      text_point = @scraped_data.at_css('.loyalty-points > .a-color-price.a-align-bottom').text
+      trim_point = /pt/.match(text_point.gsub(/(\r\n|\r|\n|\s)/, ""))
+      trim_point.pre_match.gsub(/,/,"").to_i
+    end
+
+    def publish_date
+      text_pub_date = @scraped_data.at_css('.a-button-stack .a-section.a-text-center .a-size-mini > span > b')&.text
+      Date.parse(text_pub_date) if text_pub_date
+    end
+  end
+
+  # 紙の本を表す
+  class PaperPage < Page
+    def initialize(page)
+      @scraped_data = page.scraped_data
+      @url = page.url
+    end
+
+    def turn_to_kindle
+      a_tag = @scraped_data.at_css(".a-button.a-spacing-mini.a-button-toggle.format > .a-button-inner > a")
+      if a_tag
+        page = Page.new(DOMAIN + a_tag['href'])
+        KindlePage.new(page)
+      end
+    end
+
+    def set_book_data(user_id,img)
+      Book.new(
+          title: title,
+          author: author,
+          user_id: user_id,
+          publish_date: publish_date,
+          img: img
+      )
+    end
+
+    def set_content(book_id)
+      PaperBook.new(
+          book_id: book_id,
+          detail_link: @url
+      )
+    end
+
+    def set_history(book_id)
+      PaperHistory.new(
+          book_id: book_id,
+          price: price,
+          point: point
+      )
+    end
+
+    def title
+      @scraped_data.title.split("|").first
+    end
+
+    def author
+      @scraped_data.title.split("|")[1]
+    end
+
+    def publish_date
+      pub_date =  @scraped_data.css("#title > .a-size-medium.a-color-secondary.a-text-normal")[1].text # – 2016/12/31
+      Date.parse(pub_date[2, pub_date.length-1])
+    end
+
+    def price
+      text_price = @scraped_data.at_css('.a-size-medium.a-color-price.offer-price.a-text-normal').text
+      text_price[2, text_price.length-1].to_i
+    end
+
+    def point
+      text_point = @scraped_data.at_css('#buyBoxInner .a-color-price').text.gsub(/(\r\n|\r|\n|\s|￥)/, "")
+      /pt/.match(text_point).pre_match.gsub(/,/,"").to_i
+    end
+  end
 
   # ユーザー毎のWatchList表示する。
   def index
@@ -38,7 +170,6 @@ class WatchListsController < ApplicationController
     @watch_lists = list.map do |l|
       w = {}
       marged_date = kindle_histories[l.id].keys&paper_histories[l.id].keys
-      p marged_date
       w["list"] = l
       w["data"] = {
           labels:marged_date,
@@ -69,32 +200,32 @@ class WatchListsController < ApplicationController
   end
 
   def add
-    doc = scrape(params[:link])
+    page = Page.new(params[:link])
     img = params[:img]
+    p_page = nil
+    k_page = nil
+    if kindle?(page.scraped_data)
+      k_page = KindlePage.new(page)
+      p_page = k_page.turn_to_paper
+    else
+      p_page = PaperPage.new(page)
+      k_page = p_page.turn_to_kindle
 
-    if kindle?(doc)
-      # 紙本のリンク取得
-      pp_url =  URI.encode(DOMAIN + doc.at_css('.top-level.unselected-row .dp-title-col .title-text')['href'])
-      ppdoc = scrape(pp_url)
-      # コミック情報登録
-      book = save_book(ppdoc,img)
-      save_paper_book(ppdoc, book,pp_url)
-
-      # Kindle情報登録
-      save_kindle_book(doc, book, params[:link])
-
-    else #文庫には対応しない
-      # コミック情報登録
-      book = save_book(doc,img)
-      save_paper_book(doc, book, params[:link])
-
-      # Kindleリンク探しに行く
-      noko_link = doc.at_css(".a-button.a-spacing-mini.a-button-toggle.format > .a-button-inner > a")
-      if noko_link
-        kindle_link = URI.escape(DOMAIN + noko_link['href'])
-        save_kindle_book(scrape(kindle_link),book, kindle_link)
-      end
     end
+
+
+    book = p_page.set_book_data(current_user.id,img)
+    book.save
+
+    p_page.set_content(book.id).save
+    p_page.set_history(book.id).save
+
+
+    if k_page != nil
+      k_page.set_content(book.id).save
+      k_page.set_history(book.id).save
+    end
+
     redirect_to root_path
   end
 
